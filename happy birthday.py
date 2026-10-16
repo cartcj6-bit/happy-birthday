@@ -69,12 +69,20 @@ st.markdown("<p style='text-align: center; font-size: 1.3rem; color: #f8f8f2; op
 
 # --- 5. Optional Audio / Music Widget ---
 st.markdown("### 🎵 Turn Up The Birthday Music")
+uploaded_music = st.file_uploader(
+    "Choose a music file (MP3, WAV, or OGG):",
+    type=["mp3", "wav", "ogg"],
+    key="birthday_music",
+)
 music_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "birthday.mp3")
-if os.path.isfile(music_path):
+if uploaded_music is not None:
+    st.audio(uploaded_music, format=uploaded_music.type, loop=True)
+elif os.path.isfile(music_path):
     with open(music_path, "rb") as music_file:
         st.audio(music_file.read(), format="audio/mp3", loop=True)
 else:
-    st.info("Add your music file to this folder and name it birthday.mp3.")
+    st.info("Upload your music file above, or add an MP3 named birthday.mp3 to the app folder.")
+st.caption("Press Play to start the music. Browsers block audio autoplay.")
 
 st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
 
