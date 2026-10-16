@@ -69,19 +69,16 @@ st.markdown("<p style='text-align: center; font-size: 1.3rem; color: #f8f8f2; op
 
 # --- 5. Optional Audio / Music Widget ---
 st.markdown("### 🎵 Turn Up The Birthday Music")
-uploaded_music = st.file_uploader(
-    "Choose a music file (MP3, WAV, or OGG):",
-    type=["mp3", "wav", "ogg"],
-    key="birthday_music",
+music_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "birthday.mp3",
+    "The 1975 - About You (Official).mp3",
 )
-music_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "birthday.mp3")
-if uploaded_music is not None:
-    st.audio(uploaded_music, format=uploaded_music.type, loop=True)
-elif os.path.isfile(music_path):
+if os.path.isfile(music_path):
     with open(music_path, "rb") as music_file:
         st.audio(music_file.read(), format="audio/mp3", loop=True)
 else:
-    st.info("Upload your music file above, or add an MP3 named birthday.mp3 to the app folder.")
+    st.warning(f"Music file not found: {music_path}")
 st.caption("Press Play to start the music. Browsers block audio autoplay.")
 
 st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
@@ -135,7 +132,73 @@ if photo_list:
 else:
     st.info("The photo album is currently empty. Drop some birthday picture files into the uploader area above to populate the screen! 🎈")
 
-# --- 8. Re-trigger Animation Button ---
+# --- 8. Automatic Fireworks Animation ---
 st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
-if st.button("🎆 Re-launch Celebration Rockets!"):
-    st.snow()  # Triggers a secondary falling star particle aesthetic
+st.components.v1.html(
+    """
+    <canvas id="fireworks" style="display:block;width:100%;height:300px;background:#121214;border-radius:16px"></canvas>
+    <script>
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+    const scale = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * scale;
+    canvas.height = canvas.clientHeight * scale;
+    ctx.scale(scale, scale);
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const colors = ["#ff79c6", "#8be9fd", "#f1fa8c", "#ffb86c", "#bd93f9"];
+    const particles = [];
+    const duration = 5000 + Math.random() * 5000;
+    const endAt = Date.now() + duration;
+
+    function burst() {
+        const x = width * (0.15 + Math.random() * 0.7);
+        const y = height * (0.15 + Math.random() * 0.5);
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 65; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 4;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 45 + Math.random() * 35,
+                color
+            });
+        }
+    }
+
+    const burstTimer = setInterval(burst, 550);
+    burst();
+
+    function animate() {
+        ctx.fillStyle = "rgba(18, 18, 20, 0.2)";
+        ctx.fillRect(0, 0, width, height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.035;
+            p.life -= 1;
+            ctx.globalAlpha = Math.max(p.life / 80, 0);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 3, 3);
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        ctx.globalAlpha = 1;
+        if (Date.now() < endAt) {
+            requestAnimationFrame(animate);
+        } else {
+            clearInterval(burstTimer);
+            canvas.style.transition = "opacity 1s ease";
+            canvas.style.opacity = "0";
+        }
+    }
+
+    animate();
+    </script>
+    """,
+    height=320,
+    scrolling=False,
+)
