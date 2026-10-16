@@ -69,9 +69,12 @@ st.markdown("<p style='text-align: center; font-size: 1.3rem; color: #f8f8f2; op
 
 # --- 5. Optional Audio / Music Widget ---
 st.markdown("### 🎵 Turn Up The Birthday Music")
-# You can swap this link with an audio file path, or upload a 'birthday.mp3' file in the same directory
-music_url = "https://soundhelix.com" 
-st.audio(music_url, format="audio/mp3", loop=True)
+music_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "birthday.mp3")
+if os.path.isfile(music_path):
+    with open(music_path, "rb") as music_file:
+        st.audio(music_file.read(), format="audio/mp3", loop=True)
+else:
+    st.info("Add your music file to this folder and name it birthday.mp3.")
 
 st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
 
